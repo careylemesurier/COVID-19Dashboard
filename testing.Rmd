@@ -78,27 +78,44 @@ glasgow_vac_df <- read_csv("data/glasgow_vac.csv")
 
 
 ```{r}
+# This Weeks data -------------------------------------------------------------------
 # initialize dataframe with just the headers of a city df
-last7days_df <- belfast_df[0,]
+all_cities_df <- belfast_df[0,]
 
 # get latest date in data
 today <- max(belfast_df$date)
 earliest_date <- today - as.difftime(7, unit="days")
 
-# loop through each city df and concatenate the last 7 days data to the last7days_df
+replaceNa <- function(x) {
+    idx <- !is.na(x)
+    x[idx][cumsum(idx)]
+}
+
+# loop through each city df and replace NA with 0 and concatenate the last 7 days data to the last7days_df
 for (city_df in cities){
     filtered_data <- city_df %>%
-        filter(date >= earliest_date)
+        arrange(date)
     
+    # set first row nas to 0
+    filtered_data[1,is.na(filtered_data[1,])] <- 0
+    
+    filtered_data$hospitalCases <- replaceNa(filtered_data$hospitalCases)
+    filtered_data$cumCasesByPublishDate <- replaceNa(filtered_data$cumCasesByPublishDate)
+    filtered_data$cumDeaths28DaysByDeathDate <- replaceNa(filtered_data$cumDeaths28DaysByDeathDate)
+    
+    # for daily stats replace nas with 0, and cumulative stats that are all NAs (meaning 0)
     filtered_data[is.na(filtered_data)] <- 0
-      
-    last7days_df <- rbind(last7days_df, filtered_data)
+    
+    all_cities_df <- rbind(all_cities_df, filtered_data)
 }
+
+last7days_df <- all_cities_df %>%
+    filter(date>=earliest_date)
 
 ```
 
 ```{r}
-unique(last7days_df[c("areaName")])
+head(last7days_df,40)
 ```
 
 
@@ -154,11 +171,22 @@ city_locations[nrow(city_locations) + 1,] <- c('Glasgow City', 55.8642, -4.2518)
 ```
 
 ```{r}
-# get totals from last 7 days by city
-last7days_df_summarize <- aggregate(cbind(cumCasesByPublishDate,cumDeaths28DaysByDeathDate, hospitalCases, newCasesByPublishDate, newDeaths28DaysByPublishDate)~areaName, last7days_df, sum)
+# get aggregates from last 7 days by city- sums for new cases/deaths, latest value for cumulative data
+last7days_df_summarize <- aggregate(cbind(newCasesByPublishDate,newDeaths28DaysByPublishDate)~
+                                        areaName, last7days_df, sum) %>% arrange(areaName)
 
+last7days_df_summarize$cumCasesByPublishDate <- (last7days_df %>%
+                                                     filter(date == today) %>% 
+                                                     arrange(areaName))$cumCasesByPublishDate
+last7days_df_summarize$cumDeaths28DaysByDeathDate <- (last7days_df %>%
+                                                          filter(date == today) %>%
+                                                          arrange(areaName))$cumDeaths28DaysByDeathDate
+last7days_df_summarize$hospitalCases <- (last7days_df %>%
+                                             filter(date == today) %>% 
+                                             arrange(areaName))$hospitalCases
 # merge long lat data with last 7 days data
 last7days_df_summarize <- merge(last7days_df_summarize, city_locations, by='areaName')
+
 ```
 
 ```{r}
@@ -210,48 +238,10 @@ ggplotly(line_p, tooltip="text")
 ```
 ## Status section
 
-```{r}
-
-# this give the percent increase from today vs. 7 days ago- sensitive to a noisy day
-
-today <- max(belfast_df$date)
-earliest_date <- today - as.difftime(7, unit="days")
-
-newCol <- vector(mode = "list", length = 7)
-
-i <- 1
-for (city in last7days_df_summarize$areaName){
-  row_1 <- last7days_df %>%
-    filter((areaName==city)&(date==earliest_date))
-  num_1 <- row_1$newCasesByPublishDate
-  
-  row_2 <- last7days_df %>%
-    filter((areaName==city)&(date==today))
-  num_2 <- row_2$newCasesByPublishDate
-
-  newCol[i] <- ((num_2 - num_1)/num_1)*100
-  i <- i+1
-  print(city)
-  print(num_1)
-  print(num_2)
-  print(((num_2 - num_1)/num_1)*100)
-}
-
-last7days_df_summarize$cases_percent_increase <- newCol
-
-```
-
 
 ```{r}
-
-
-```
-
-
-
-```{r}
-# data from 2 weeks ago, so I can get percent increase from last week to this week 
-# --------------------------------------------------------------------
+# Data From 2 Weeks Ago ---------------------------------------------------------------
+#so I can get percent increase from last week to this week 
 
 two_weeks_ago_df <- belfast_df[0,]
 
@@ -260,18 +250,23 @@ today <- max(belfast_df$date)
 earliest_date <- today - as.difftime(7, unit="days")
 two_weeks_ago_date <- today - as.difftime(14, unit="days")
 
-# loop through each city df
-for (city_df in cities){
-    filtered_data <- city_df %>%
-        filter(date <= earliest_date,
-               date >= two_weeks_ago_date)
-    
-    filtered_data[is.na(filtered_data)] <- 0
-      
-    two_weeks_ago_df <- rbind(two_weeks_ago_df, filtered_data)
-}
+#get data from 2 weeks ago
+two_weeks_ago_df <- all_cities_df %>%
+    filter(date<=earliest_date,
+           date>=two_weeks_ago_date)
 
-two_weeks_ago_df_summarize <- aggregate(cbind(cumCasesByPublishDate,cumDeaths28DaysByDeathDate, hospitalCases, newCasesByPublishDate, newDeaths28DaysByPublishDate)~areaName, two_weeks_ago_df, sum)
+two_weeks_ago_df_summarize <- aggregate(cbind(newCasesByPublishDate, newDeaths28DaysByPublishDate)~
+                                            areaName, two_weeks_ago_df, sum)%>% arrange(areaName)
+
+two_weeks_ago_df_summarize$cumCasesByPublishDate <- (two_weeks_ago_df %>%
+                                                     filter(date == earliest_date)%>% 
+                                                         arrange(areaName))$cumCasesByPublishDate
+two_weeks_ago_df_summarize$cumDeaths28DaysByDeathDate <- (two_weeks_ago_df %>%
+                                                          filter(date == earliest_date)%>% 
+                                                              arrange(areaName))$cumDeaths28DaysByDeathDate
+two_weeks_ago_df_summarize$hospitalCases <- (two_weeks_ago_df %>%
+                                             filter(date == earliest_date)%>% 
+                                                 arrange(areaName))$hospitalCases
 
 # percent increase data --------------------------------------------------------------------
 col_names <- colnames(two_weeks_ago_df_summarize)
@@ -279,28 +274,130 @@ percent_increase_df <- data.frame(matrix(ncol = 6, nrow = 7))
 colnames(percent_increase_df) <- col_names
 
 percent_increase_df$newCasesByPublishDate <- ((last7days_df_summarize$newCasesByPublishDate - two_weeks_ago_df_summarize$newCasesByPublishDate)/two_weeks_ago_df_summarize$newCasesByPublishDate)*100
-
 percent_increase_df$newDeaths28DaysByPublishDate <- ((last7days_df_summarize$newDeaths28DaysByPublishDate - two_weeks_ago_df_summarize$newDeaths28DaysByPublishDate)/ two_weeks_ago_df_summarize$newDeaths28DaysByPublishDate)*100
-
 percent_increase_df$hospitalCases <- ((last7days_df_summarize$hospitalCases - two_weeks_ago_df_summarize$hospitalCases)/two_weeks_ago_df_summarize$hospitalCases)*100
-
 percent_increase_df$cumCasesByPublishDate <- ((last7days_df_summarize$cumCasesByPublishDate - two_weeks_ago_df_summarize$cumCasesByPublishDate)/two_weeks_ago_df_summarize$cumCasesByPublishDate)*100
-
 percent_increase_df$cumDeaths28DaysByDeathDate <- ((last7days_df_summarize$cumDeaths28DaysByDeathDate - two_weeks_ago_df_summarize$cumDeaths28DaysByDeathDate)/two_weeks_ago_df_summarize$cumDeaths28DaysByDeathDate)*100
-
 percent_increase_df$areaName <- two_weeks_ago_df_summarize$areaName
 
 is.nan.data.frame <- function(x)
-do.call(cbind, lapply(x, is.nan))
+    do.call(cbind, lapply(x, is.nan))
 
 percent_increase_df[is.nan(percent_increase_df)] <- 0
 
+
 ```
+
+## percent tiles
 
 
 ```{r}
 
-percent_increase_df
+percent_increase_df$group <- ifelse(percent_increase_df$newCasesByPublishDate<0,"green","red")
+percent_increase_df$label_percent <- round(percent_increase_df$newCasesByPublishDate, digits=0)
+percent_increase_df$pos <- ifelse(percent_increase_df$newCasesByPublishDate<0,"","+")
+
+
 
 ```
+
+```{r}
+fig <- plot_ly()
+cities = c('Belfast','Birmingham', 'Bristol, City of','Cambridgeshire','Cardiff','City of Edinburgh','Glasgow City')
+i <- 1
+for (city in cities){
+  if (city=='Bristol, City of'){
+    city_title<-'Bristol'
+  }
+  else if (city=='City of Edinburgh'){
+    city_title<-'Edinburgh'
+  }
+  else{
+    city_title<-city
+  }
+  fig <- fig %>%
+    add_trace(
+      type = "indicator",
+      mode = "number",
+      value = (percent_increase_df %>% filter(areaName==city))$label_percent,
+      number = list(
+        prefix = (percent_increase_df %>% filter(areaName==city))$pos,
+        suffix="%", 
+        font=list(
+          color=(percent_increase_df %>% filter(areaName==city))$group,
+          size = 25)),
+      domain = list(x = c((i-1)/7, i/7), y = c(0, 1)),
+      title =list(text = city_title,
+                  font=list(
+                    color="black",
+                    size = 12))
+      ) 
+  i <- i+1
+}
+
+fig
+
+```
+
+
+
+
+```{r}
+
+ggplot(percent_increase_df, aes(fill = group_colour, ymax = newCasesByPublishDate, ymin = 0, xmax = 2, xmin = 1)) +
+ geom_rect(aes(ymax=1, ymin=0, xmax=2, xmin=1), fill ="#ece8bd") +
+ geom_rect() + 
+ coord_polar(theta = "y",start=-pi/2) + xlim(c(0, 2)) + ylim(c(0,2)) +
+ geom_text(aes(x = 0, y = 0, label = label_percent, colour=group_colour), size=6.5, family="Poppins SemiBold") +
+ geom_text(aes(x=1.5, y=1.5, label=areaName), family="Poppins Light", size=4.2) + 
+ facet_wrap(~areaName, ncol = 7) +
+ theme_void() +
+ scale_fill_manual(values = c("red"="#C9146C", "orange"="#DA9112", "green"="#129188")) +
+ scale_colour_manual(values = c("red"="#C9146C", "orange"="#DA9112", "green"="#129188")) +
+ theme(strip.background = element_blank(),
+ strip.text.x = element_blank()) +
+ guides(fill=FALSE) +
+ guides(colour=FALSE)
+
+
+```
+
+
+
+
+## test
+
+```{r}
+df <- data.frame(matrix(nrow=5, ncol = 2))
+
+names(df) <- c("variable", "percentage")
+df$variable <- c("Carbohydrates", "Warming", "NGTnotPresent", "DrainNotPresent", "DrEaMing")
+df$percentage <- c(0.67,0.33,0.86,0.78,0.58)
+
+df <- df %>% mutate(group=ifelse(percentage <0.6, "red",
+ ifelse(percentage>=0.6 & percentage<0.8, "orange","green")),
+ label=paste0(percentage*100, "%"),
+ title=dplyr::recode(variable, `Carbohydrates`="Preoperative\ncarbohydrate loading",
+ `Warming`="Intraoperative\nwarming",
+ `NGTnotPresent`="Patients without a\nnasogastric tube\non arrival in recovery",
+ `DrainNotPresent`="Patients without an\nabdominal drain\non arrival in recovery",
+ `DrEaMing`="Patients DrEaMing on\npostoperative day 1"))
+
+ggplot(df, aes(fill = group, ymax = percentage, ymin = 0, xmax = 2, xmin = 1)) +
+ geom_rect(aes(ymax=1, ymin=0, xmax=2, xmin=1), fill ="#ece8bd") +
+ geom_rect() + 
+ coord_polar(theta = "y",start=-pi/2) + xlim(c(0, 2)) + ylim(c(0,2)) +
+ geom_text(aes(x = 0, y = 0, label = label, colour=group), size=6.5, family="Poppins SemiBold") +
+ geom_text(aes(x=1.5, y=1.5, label=title), family="Poppins Light", size=4.2) + 
+ facet_wrap(~title, ncol = 5) +
+ theme_void() +
+ scale_fill_manual(values = c("red"="#C9146C", "orange"="#DA9112", "green"="#129188")) +
+ scale_colour_manual(values = c("red"="#C9146C", "orange"="#DA9112", "green"="#129188")) +
+ theme(strip.background = element_blank(),
+ strip.text.x = element_blank()) +
+ guides(fill=FALSE) +
+ guides(colour=FALSE)
+
+```
+
 
