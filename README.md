@@ -6,5 +6,5 @@ The data is scraped using the python code in the "web-scraping" folder, from the
 
 ## The dashboard
 The dashboard is built using Shiny in R. The app.R code contains all of the required code to run the app, as long as it has access to the data folder.
-The app is also hosted at the following URL: 
+The app is also hosted at the following URL:  https://careylemesurier.shinyapps.io/covid-19dashboard/
 
