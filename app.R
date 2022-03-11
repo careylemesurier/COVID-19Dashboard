@@ -273,7 +273,7 @@ homePage <- fluidPage(
         used for supporting longer term decisions around vaccine mandates acording to the Vaccine 
         Impact tab.")),
     fluidRow(
-        h3("Relative Weekly Update ")),
+        h3("Weekly Update ")),
     fluidRow(
         p(" The figures below show the relative increase in the selected metric from last week to 
           this week. "))
