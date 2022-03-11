@@ -9,15 +9,15 @@ The dashboard is built using Shiny in R. The app.R code contains all of the requ
 The app is also hosted at the following URL:  https://careylemesurier.shinyapps.io/covid-19dashboard/
 
 ## Package Requirements
-The following packages need to be installed to run the app:
-library(shiny)
-library(dplyr)
-library(readr)
-library(ggplot2)
-library(plotly)
-library(bslib)
-library(magrittr)
-require(maps)
-require(viridis)
-library(hash)
-library(cowplot)
+The following packages need to be installed to run the app:  
+library(shiny)  
+library(dplyr)  
+library(readr)  
+library(ggplot2)  
+library(plotly)  
+library(bslib)  
+library(magrittr)  
+require(maps)  
+require(viridis)  
+library(hash)  
+library(cowplot)  
