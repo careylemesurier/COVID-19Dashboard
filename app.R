@@ -54,8 +54,6 @@ for (city_df in cities){
 }
 
 # vaccine data  -----------------------------------------------------------
-belfast_vac_df <- read_csv("data/belfast_vac.csv")
-cardiff_vac_df <- read_csv("data/cardiff_vac.csv")
 edinburgh_vac_df <- read_csv("data/edinburgh_vac.csv")
 birmingham_vac_df <- read_csv("data/birmingham_vac.csv")
 bristol_vac_df <- read_csv("data/bristol_vac.csv")
@@ -173,20 +171,24 @@ ui <- fluidPage(
                 )
             )
         ),
-        tabPanel("Vaccine Impact", htmlOutput("vaccinePage"))
+        tabPanel("Vaccine Impact", 
+                 fluidPage(
+                     htmlOutput("vaccinePage"),
+                     actionButton("bristol_vac", "Bristol"),
+                     actionButton("cambridge_vac", "Cambridge"),
+                     actionButton("edinburgh_vac", "Edingburgh"),
+                     actionButton("birmingham_vac", "Birmingham"),
+                     actionButton("glasgow_vac", "Glasgow"),
+                     fluidRow(
+                         plotOutput("proportions")
+                     )
+                 )
+        )
+        
+        
     
 ))
 
-vaccinePage <- fluidPage(
-    titlePanel("Vaccine Information"),
-    
-    mainPanel(
-        h3("England"),
-        h3("North Ireland"),
-        h3("Wales"),
-        h3("Scotland")
-    )
-)
 
 casePage <- fluidPage(
     mainPanel(
@@ -301,8 +303,56 @@ server <- function(input, output) {
     
     
     # Vaccine Page text
-    output$vaccinePage <- renderUI(vaccinePage)
-    
+    shown <- reactiveVal()
+    observeEvent(input$bristol_vac, {
+        shown(bristol_vac_df)
+    })
+    observeEvent(input$cambridge_vac, {
+        shown(cambridge_vac_df)
+    })
+    observeEvent(input$edinburgh_vac, {
+        shown(edinburgh_vac_df)
+    })
+    observeEvent(input$birmingham_vac, {
+        shown(birmingham_vac_df)
+    })
+    observeEvent(input$glasgow_vac, {
+        shown(glasgow_vac_df)
+    })
+    output$proportions <- renderPlot({
+        df <- shown()
+        if (!is.null(df$date)) {
+            proportion <- df%>%
+                na.omit() %>%
+                mutate(first_does = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
+                mutate(second_does = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
+                mutate(third_does = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
+                select(first_does, second_does, third_does) %>%
+                head(1)
+            first_does = proportion$first_does 
+            second_does = proportion$second_does 
+            third_does = proportion$third_does 
+            eg <- tribble(
+                ~x, ~y, ~size, ~x1,
+                "First Does", 1, 4, 1,
+                "Second Does", 1, 8, 2,
+                "Third Does", 1, 12, 3
+            )
+            # Color, discrete
+            plot <- ggplot(eg, aes(x = x, y = y, color = x1)) +
+                geom_point(size = 50) +
+                guides(color = FALSE) +
+                theme(axis.text.y = element_blank(),
+                      axis.title = element_blank(),
+                      axis.ticks = element_blank(),
+                      panel.background = element_rect(fill = "transparent",colour = NA)) +
+                annotate("text", x = 1, y=1, label=first_does) +
+                annotate("text", x = 2, y=1, label=second_does) +
+                annotate("text", x = 3, y=1, label=third_does)
+                return (plot)
+        }
+    })
+
 }
 
 # Run the application 
