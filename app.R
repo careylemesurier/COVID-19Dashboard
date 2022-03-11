@@ -14,6 +14,8 @@ library(magrittr)
 require(maps)
 require(viridis)
 library(hash)
+library(rsconnect)
+library(cowplot)
 
 
 
@@ -74,11 +76,11 @@ city_locations[nrow(city_locations) + 1,] <- c('Bristol, City of', 51.4545, -2.5
 city_locations[nrow(city_locations) + 1,] <- c('Cambridgeshire', 52.2053, -0.1218)
 city_locations[nrow(city_locations) + 1,] <- c('Glasgow City', 55.8642, -4.2518)
 
-# This Weeks data -------------------------------------------------------------------
-# initialize dataframe with just the headers of a city df
+# Combining all Cities Data -------------------------------------------------------------------
+# initialize data frame with just the headers of a city df
 all_cities_df <- belfast_df[0,]
 
-# get latest date in data
+# Initialize variables for today and one week prior
 today <- max(belfast_df$date)
 earliest_date <- today - as.difftime(7, unit="days")
 
@@ -87,7 +89,7 @@ replaceNa <- function(x) {
     x[idx][cumsum(idx)]
 }
 
-# loop through each city df and replace NA with 0 and concatenate the last 7 days data to the last7days_df
+# loop through each city df; replace NAs and concatenate to the all_cities_df
 for (city_df in cities){
     filtered_data <- city_df %>%
         arrange(date)
@@ -95,21 +97,23 @@ for (city_df in cities){
     # set first row nas to 0
     filtered_data[1,is.na(filtered_data[1,])] <- 0
     
+    # Use replace na function to replace nas with prior value for cumulative columns
     filtered_data$hospitalCases <- replaceNa(filtered_data$hospitalCases)
     filtered_data$cumCasesByPublishDate <- replaceNa(filtered_data$cumCasesByPublishDate)
     filtered_data$cumDeaths28DaysByDeathDate <- replaceNa(filtered_data$cumDeaths28DaysByDeathDate)
     
-    # for daily stats replace nas with 0, and cumulative stats that are all NAs (meaning 0)
+    # for daily stat columns replace nas with 0
     filtered_data[is.na(filtered_data)] <- 0
     
     all_cities_df <- rbind(all_cities_df, filtered_data)
 }
 
+# create data frame of just data from the last 7 days
 last7days_df <- all_cities_df %>%
     filter(date>=earliest_date)
 
-
-# get aggregates from last 7 days by city- sums for new cases/deaths, latest value for cumulative data
+# create summary data frame for the last 7 days:
+# get aggregates from last 7 days by city- sums for daily stat columns, latest value for cumulative data
 last7days_df_summarize <- aggregate(cbind(newCasesByPublishDate,newDeaths28DaysByPublishDate)~
                                         areaName, last7days_df, sum) %>% arrange(areaName)
 
@@ -122,13 +126,11 @@ last7days_df_summarize$cumDeaths28DaysByDeathDate <- (last7days_df %>%
 last7days_df_summarize$hospitalCases <- (last7days_df %>%
                                              filter(date == today) %>% 
                                              arrange(areaName))$hospitalCases
-# merge long lat data with last 7 days data
+# merge long lat data with last 7 days summary data
 last7days_df_summarize <- merge(last7days_df_summarize, city_locations, by='areaName')
 
 # Data From 2 Weeks Ago ---------------------------------------------------------------
 #so I can get percent increase from last week to this week 
-
-two_weeks_ago_df <- belfast_df[0,]
 
 # get latest date in data
 today <- max(belfast_df$date)
@@ -140,6 +142,7 @@ two_weeks_ago_df <- all_cities_df %>%
     filter(date<=earliest_date,
            date>=two_weeks_ago_date)
 
+# create summary data frame for the data from 2 weeks ago:
 two_weeks_ago_df_summarize <- aggregate(cbind(newCasesByPublishDate, newDeaths28DaysByPublishDate)~
                                             areaName, two_weeks_ago_df, sum)%>% arrange(areaName)
 
@@ -172,8 +175,7 @@ percent_increase_df[is.nan(percent_increase_df)] <- 0
 
 
 
-
-# Define UI for application 
+# Define UI for application ------------------------------------------------------------------------
 ui <- fluidPage(
     theme = bs_theme(bootswatch = "lux"),
     
@@ -196,7 +198,7 @@ ui <- fluidPage(
             fluidPage(
                 fluidRow(uiOutput("casePage")),
                 fluidRow(
-                    column(6,
+                    column(4,
                            radioButtons(inputId = "metric", 
                                        label = "Select metric: ", 
                                        selected = "New Cases",
@@ -206,11 +208,13 @@ ui <- fluidPage(
                                                    "Total Cases",
                                                    "Total Deaths"))
                            ),
-                    column(6,
+                    
+                    column(4,
                            selectInput(inputId = "city", 
                                        label = "Select city: ", 
                                        selected = "Belfast",
-                                       choices = city_locations$areaName),
+                                       choices = city_locations$areaName)),
+                    column(4,#align="right",
                            dateRangeInput(inputId = 'date_range',
                                           label = "Select date range: ",
                                           start = earliest_date,
@@ -220,12 +224,14 @@ ui <- fluidPage(
                            )
                 ),
                 fluidRow(
-                    column(6,plotlyOutput("map_plot")),
+                    column(6,fluidRow(
+                        column(9,plotlyOutput("map_plot")),
+                        column(3, align="center",plotOutput(outputId = "map_plot_legend", width = "100%", height="100%")))),
                     column(6,plotlyOutput("case_line_plot"))
                 )
             )
         ),
-        tabPanel("Vaccine Impact", 
+        tabPanel("Vaccination Rates", 
                  fluidPage(
                      htmlOutput("vaccinePage"),
                      actionButton("bristol_vac", "Bristol"),
@@ -250,7 +256,7 @@ casePage <- fluidPage(
     titlePanel("Cases, Deaths, and Hospitalizations"),
     fluidRow(
         p("This section is intended to provide a more detailed look into the changing conditions of the 
-        pandemic. Users can navigate through the various cities, metrics, and dates to understand how the
+        pandemic. Users can navigate through the various cities, metrics, and dates to assess the
         current status of the pandemic, and compare that to historic data for reference. \n
         
         The Map Visual (left) shows the relative 
@@ -283,7 +289,7 @@ homePage <- fluidPage(
 
 
 
-# Define server logic 
+# Define server logic ------------------------------------------------------------------------
 server <- function(input, output) {
     # homepage text
     output$homePage <- renderUI(homePage)
@@ -294,7 +300,7 @@ server <- function(input, output) {
         selected_city <- input$city
         selected_metric <- input$metric
         
-        last7days_df_summarize$selected = ifelse(last7days_df_summarize$areaName==selected_city,1,0)
+        last7days_df_summarize$selected = ifelse(last7days_df_summarize$areaName==selected_city,"1","2")
         
         world_map <- map_data("world")
         
@@ -313,7 +319,10 @@ server <- function(input, output) {
                                colour = selected,
                                text = paste("City: ", areaName, 
                                             "<br>New Cases this week: ", newCasesByPublishDate))) +
-                theme(legend.position="none")
+                scale_color_manual(guide = "none",
+                                   values=c("#6bb9fc","black")) +
+                scale_size_continuous(name = paste("Number of",selected_metric)) +
+                theme(legend.position='right')
         }
         else if (selected_metric=="New Deaths"){
             map_p <-ggplot() +
@@ -330,7 +339,10 @@ server <- function(input, output) {
                                colour = selected,
                                text = paste("City: ", areaName,
                                             "<br>Total Deaths this week: ", newDeaths28DaysByPublishDate))) +
-                theme(legend.position="none")
+                scale_color_manual(guide = "none",
+                                   values=c("#6bb9fc","black")) +
+                scale_size_continuous(name=paste("Number of",selected_metric)) +
+                theme(legend.position='right')
         }
         else if (selected_metric=="Current Hospitalizations"){
             map_p <-ggplot() +
@@ -347,7 +359,10 @@ server <- function(input, output) {
                                colour = selected,
                                text = paste("City: ", areaName,
                                             "<br>Hospitalizations this week: ", hospitalCases))) +
-                theme(legend.position="none")
+                scale_color_manual(guide = "none",
+                                   values=c("#6bb9fc","black")) +
+                scale_size_continuous(name=paste("Number of",selected_metric)) +
+                theme(legend.position='right')
         }
         else if (selected_metric=="Total Cases"){
             map_p <-ggplot() +
@@ -364,7 +379,10 @@ server <- function(input, output) {
                                colour = selected,
                                text = paste("City: ", areaName,
                                             "<br>Total Cases: ", cumCasesByPublishDate))) +
-                theme(legend.position="none")
+                scale_color_manual(guide = "none",
+                                   values=c("#6bb9fc","black")) +
+                scale_size_continuous(name=paste("Number of",selected_metric)) +
+                theme(legend.position='right')
         }
         else{
             map_p <-ggplot() +
@@ -381,13 +399,133 @@ server <- function(input, output) {
                                colour = selected,
                                text = paste("City: ", areaName,
                                             "<br>Total Deaths: ", cumDeaths28DaysByDeathDate))) +
-                theme(legend.position="none")
+                scale_color_manual(guide = "none",
+                                   values=c("#6bb9fc","black")) +
+                scale_size_continuous(name=paste("Number of",selected_metric)) +
+                theme(legend.position='right')
         }
         
-        map_plotly_plot <- ggplotly(map_p, tooltip="text")
-        
+        map_plotly_plot <- ggplotly(map_p, tooltip="text")%>%
+            layout(showlegend = FALSE)
+    
+    
         return(map_plotly_plot)
     })
+    
+    # case count map legend
+    output$map_plot_legend <- renderPlot({
+        selected_city <- input$city
+        selected_metric <- input$metric
+        
+        last7days_df_summarize$selected = ifelse(last7days_df_summarize$areaName==selected_city,"1","2")
+        
+        world_map <- map_data("world")
+        
+        if (selected_metric=="New Cases"){
+            map_p <-ggplot() +
+                geom_polygon(data = world_map, 
+                             aes(x = long, y = lat, group=group), 
+                             fill="lightgrey", colour = "white") + 
+                coord_fixed(ratio = 1.3, 
+                            xlim = c(-10,3), 
+                            ylim = c(50, 59)) + 
+                theme_void() +
+                geom_point(data = last7days_df_summarize, 
+                           aes(x = as.numeric(long), y = as.numeric(lat), 
+                               size = newCasesByPublishDate, 
+                               colour = selected,
+                               text = paste("City: ", areaName, 
+                                            "<br>New Cases this week: ", newCasesByPublishDate))) +
+                scale_color_manual(guide = "none",
+                                   values=c("#6bb9fc","black")) +
+                scale_size_continuous(name=selected_metric) +  #paste("Number of",selected_metric)) +
+                theme(legend.position='right')
+        }
+        else if (selected_metric=="New Deaths"){
+            map_p <-ggplot() +
+                geom_polygon(data = world_map, 
+                             aes(x = long, y = lat, group=group), 
+                             fill="lightgrey", colour = "white") + 
+                coord_fixed(ratio = 1.3, 
+                            xlim = c(-10,3), 
+                            ylim = c(50, 59)) + 
+                theme_void() +
+                geom_point(data = last7days_df_summarize, 
+                           aes(x = as.numeric(long), y = as.numeric(lat), 
+                               size = newDeaths28DaysByPublishDate, 
+                               colour = selected,
+                               text = paste("City: ", areaName,
+                                            "<br>Total Deaths this week: ", newDeaths28DaysByPublishDate))) +
+                scale_color_manual(guide = "none",
+                                   values=c("#6bb9fc","black")) +
+                scale_size_continuous(name=selected_metric) +  #paste("Number of",selected_metric)) +
+                theme(legend.position='right')
+        }
+        else if (selected_metric=="Current Hospitalizations"){
+            map_p <-ggplot() +
+                geom_polygon(data = world_map, 
+                             aes(x = long, y = lat, group=group), 
+                             fill="lightgrey", colour = "white") + 
+                coord_fixed(ratio = 1.3, 
+                            xlim = c(-10,3), 
+                            ylim = c(50, 59)) + 
+                theme_void() +
+                geom_point(data = last7days_df_summarize, 
+                           aes(x = as.numeric(long), y = as.numeric(lat), 
+                               size = hospitalCases, 
+                               colour = selected,
+                               text = paste("City: ", areaName,
+                                            "<br>Hospitalizations this week: ", hospitalCases))) +
+                scale_color_manual(guide = "none",
+                                   values=c("#6bb9fc","black")) +
+                scale_size_continuous(name="Hospitalizations") +  #paste("Number of",selected_metric)) +
+                theme(legend.position='right')
+        }
+        else if (selected_metric=="Total Cases"){
+            map_p <-ggplot() +
+                geom_polygon(data = world_map, 
+                             aes(x = long, y = lat, group=group), 
+                             fill="lightgrey", colour = "white") + 
+                coord_fixed(ratio = 1.3, 
+                            xlim = c(-10,3), 
+                            ylim = c(50, 59)) + 
+                theme_void() +
+                geom_point(data = last7days_df_summarize, 
+                           aes(x = as.numeric(long), y = as.numeric(lat), 
+                               size = cumCasesByPublishDate, 
+                               colour = selected,
+                               text = paste("City: ", areaName,
+                                            "<br>Total Cases: ", cumCasesByPublishDate))) +
+                scale_color_manual(guide = "none",
+                                   values=c("#6bb9fc","black")) +
+                scale_size_continuous(name=selected_metric) +  #paste("Number of",selected_metric)) +
+                theme(legend.position='right')
+        }
+        else{
+            map_p <-ggplot() +
+                geom_polygon(data = world_map, 
+                             aes(x = long, y = lat, group=group), 
+                             fill="lightgrey", colour = "white") + 
+                coord_fixed(ratio = 1.3, 
+                            xlim = c(-10,3), 
+                            ylim = c(50, 59)) + 
+                theme_void() +
+                geom_point(data = last7days_df_summarize, 
+                           aes(x = as.numeric(long), y = as.numeric(lat), 
+                               size = cumDeaths28DaysByDeathDate, 
+                               colour = selected,
+                               text = paste("City: ", areaName,
+                                            "<br>Total Deaths: ", cumDeaths28DaysByDeathDate))) +
+                scale_color_manual(guide = "none",
+                                   values=c("#6bb9fc","black")) +
+                scale_size_continuous(name=selected_metric) +  #paste("Number of",selected_metric)) +
+                theme(legend.position='right')
+        }
+        
+        legend <- cowplot::get_legend(map_p)
+        return(ggdraw(legend))
+    }, height = 150)#, width = 200)
+    
     
     # second plot on case update page
     output$case_line_plot <- renderPlotly({
@@ -446,16 +584,22 @@ server <- function(input, output) {
         h[["Current Hospitalizations"]] <- percent_increase_df$hospitalCases
        
         selected_metric <- h[[input$metric_home]]
-
+        
+        # calculate group, label, and prefix columns based on the selected metric, to update the visualization
         percent_increase_df$group <- ifelse(selected_metric<0,"green",ifelse(selected_metric==0,"grey","red"))
         percent_increase_df$label_percent <- round(selected_metric, digits=0)
-        percent_increase_df$pos <- ifelse(selected_metric<=0,"","+")   
+        percent_increase_df$pos <- ifelse(selected_metric==0,"~ ",
+            ifelse(selected_metric>=10,"+",
+                   ifelse(selected_metric<=-10,"",
+                          ifelse(selected_metric>0,"+ ",
+                                 ifelse(selected_metric<0," ","")))))   
             
         fig <- plot_ly()
         
         cities = c('Belfast','Birmingham', 'Bristol, City of','Cambridgeshire','Cardiff','City of Edinburgh','Glasgow City')
         i <- 1
         for (city in cities){
+            # Shorten the city name for the tilte for Bristol and Edinburgh
             if (city=='Bristol, City of'){
                 city_title<-'Bristol'
             }
@@ -465,6 +609,7 @@ server <- function(input, output) {
             else{
                 city_title<-city
             }
+            
             fig <- fig %>%
                 add_trace(
                     type = "indicator",
@@ -474,9 +619,9 @@ server <- function(input, output) {
                         prefix = (percent_increase_df %>% filter(areaName==city))$pos,
                         suffix="%", 
                         font=list(
-                            color=(percent_increase_df %>% filter(areaName==city))$group,
-                            size = 25)),
-                    domain = list(x = c((i-1)/7, i/7)),
+                            color=(percent_increase_df %>% filter(areaName==city))$group)),
+                            #size = 25)),
+                    domain = list(x = c((i-1)/7+0.02, i/7-0.02)),
                     title =list(text = city_title,
                                 font=list(
                                     color="black",
@@ -543,3 +688,5 @@ server <- function(input, output) {
 
 # Run the application 
 shinyApp(ui = ui, server = server)
+
+

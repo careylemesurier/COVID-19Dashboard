@@ -1,0 +1,13 @@
+name: covid-19dashboard
+title:
+username:
+account: careylemesurier
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 5833760
+bundleId: 5673570
+url: https://careylemesurier.shinyapps.io/covid-19dashboard/
+when: 1647032154.42994
+lastSyncTime: 1647032154.43012
+asMultiple: FALSE
+asStatic: FALSE
