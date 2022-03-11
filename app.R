@@ -55,11 +55,36 @@ for (city_df in cities){
 }
 
 # vaccine data  -----------------------------------------------------------
-edinburgh_vac_df <- read_csv("data/edinburgh_vac.csv")
-birmingham_vac_df <- read_csv("data/birmingham_vac.csv")
-bristol_vac_df <- read_csv("data/bristol_vac.csv")
-cambridge_vac_df <- read_csv("data/cambridge_vac.csv")
-glasgow_vac_df <- read_csv("data/glasgow_vac.csv")
+edinburgh_vac_df <- read_csv("data/edinburgh_vac.csv") %>%
+    na.omit() %>%
+    mutate(first_does = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(second_does = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(third_does = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
+    select(areaName, date, first_does, second_does, third_does)
+birmingham_vac_df <- read_csv("data/birmingham_vac.csv")%>%
+    na.omit() %>%
+    mutate(first_does = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(second_does = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(third_does = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
+    select(areaName, date, first_does, second_does, third_does)
+bristol_vac_df <- read_csv("data/bristol_vac.csv") %>%
+    na.omit() %>%
+    mutate(first_does = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(second_does = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(third_does = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
+    select(areaName, date, first_does, second_does, third_does)
+cambridge_vac_df <- read_csv("data/cambridge_vac.csv") %>%
+    na.omit() %>%
+    mutate(first_does = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(second_does = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(third_does = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
+    select(areaName, date, first_does, second_does, third_does)
+glasgow_vac_df <- read_csv("data/glasgow_vac.csv") %>%
+    na.omit() %>%
+    mutate(first_does = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(second_does = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(third_does = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
+    select(areaName, date, first_does, second_does, third_does)
 
 # Location data  -----------------------------------------------------------
 city_locations <- data.frame(matrix(ncol = 3, nrow = 0))
@@ -235,6 +260,9 @@ ui <- fluidPage(
                      actionButton("glasgow_vac", "Glasgow"),
                      fluidRow(
                          plotOutput("proportions")
+                     ),
+                     fluidRow(
+                         plotOutput("time_vaccine_plot")
                      )
                  )
         )
@@ -444,7 +472,7 @@ server <- function(input, output) {
         h[["New Cases"]] <- percent_increase_df$newCasesByPublishDate
         h[["New Deaths"]] <- percent_increase_df$newDeaths28DaysByPublishDate
         h[["Current Hospitalizations"]] <- percent_increase_df$hospitalCases
-       
+
         selected_metric <- h[[input$metric_home]]
 
         percent_increase_df$group <- ifelse(selected_metric<0,"green",ifelse(selected_metric==0,"grey","red"))
@@ -509,26 +537,39 @@ server <- function(input, output) {
         df <- shown()
         if (!is.null(df$date)) {
             proportion <- df%>%
-                na.omit() %>%
-                mutate(first_does = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
-                mutate(second_does = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
-                mutate(third_does = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
-                select(first_does, second_does, third_does) %>%
                 head(1)
-            first_does = proportion$first_does 
-            second_does = proportion$second_does 
-            third_does = proportion$third_does 
+            first_does = paste("First Does: \n", proportion$first_does, "%") 
+            second_does = paste("Second Does: \n", proportion$second_does, "%")
+            third_does = paste("Third Does: \n", proportion$third_does, "%")
+            colors = c("gold1", "gold1", "gold1")
+            for (i in 1:3) {
+                check = proportion$first_does
+                if (i == 2) {
+                    check = proportion$second_does
+                }
+                if (i == 3) {
+                    check = proportion$third_does
+                }
+                if (check > 90) {
+                    colors[i] = 1
+                }
+                if (check < 70) {
+                    colors[i] = 2
+                }
+            }
+            
             eg <- tribble(
-                ~x, ~y, ~size, ~x1,
-                "First Does", 1, 4, 1,
-                "Second Does", 1, 8, 2,
-                "Third Does", 1, 12, 3
+                ~x, ~y, ~size, 
+                "First Does", 1, 4, 
+                "Second Does", 1, 8, 
+                "Third Does", 1, 12,
             )
+            eg$x1 = colors
             # Color, discrete
             plot <- ggplot(eg, aes(x = x, y = y, color = x1)) +
                 geom_point(size = 50) +
                 guides(color = FALSE) +
-                theme(axis.text.y = element_blank(),
+                theme(axis.text = element_blank(),
                       axis.title = element_blank(),
                       axis.ticks = element_blank(),
                       panel.background = element_rect(fill = "transparent",colour = NA)) +
@@ -536,6 +577,20 @@ server <- function(input, output) {
                 annotate("text", x = 2, y=1, label=second_does) +
                 annotate("text", x = 3, y=1, label=third_does)
                 return (plot)
+        }
+    })
+    output$time_vaccine_plot <- renderPlot({
+        df <- shown()
+        if (!is.null(df$date)) {
+            df <- df %>%
+                head(14) %>%
+                select(-areaName) %>%
+                gather(key = "variable", value = "value", -date)
+            p <- ggplot(df, aes(x=date, y=value))+ 
+                geom_line(aes(color = variable), size = 1) +
+                scale_color_manual(values = c(1,2,3,4)) +
+                theme_minimal()
+            return (p)
         }
     })
 
