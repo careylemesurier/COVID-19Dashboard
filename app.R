@@ -14,7 +14,7 @@ library(magrittr)
 require(maps)
 require(viridis)
 library(hash)
-
+library(tidyr)
 
 
 # load our data -----------------------------------------------------------
@@ -538,10 +538,10 @@ server <- function(input, output) {
         if (!is.null(df$date)) {
             proportion <- df%>%
                 head(1)
-            first_does = paste("First Does: \n", proportion$first_does, "%") 
-            second_does = paste("Second Does: \n", proportion$second_does, "%")
-            third_does = paste("Third Does: \n", proportion$third_does, "%")
-            colors = c("gold1", "gold1", "gold1")
+            first_does = paste("Uptake 1st Does: \n", proportion$first_does, "%") 
+            second_does = paste("Uptake 2nd Does: \n", proportion$second_does, "%")
+            third_does = paste("Uptake 3rd Does: \n", proportion$third_does, "%")
+            colors = c("A", "A", "A")
             for (i in 1:3) {
                 check = proportion$first_does
                 if (i == 2) {
@@ -550,24 +550,22 @@ server <- function(input, output) {
                 if (i == 3) {
                     check = proportion$third_does
                 }
-                if (check > 90) {
-                    colors[i] = 1
-                }
-                if (check < 70) {
-                    colors[i] = 2
+                # If the proportion > 80%, then the color would be green 
+                if (check > 80) {
+                    colors[i] = "B"
                 }
             }
             
             eg <- tribble(
                 ~x, ~y, ~size, 
-                "First Does", 1, 4, 
-                "Second Does", 1, 8, 
-                "Third Does", 1, 12,
+                "Uptake 1st Does", 1, 4, 
+                "Uptake 2nd Does", 1, 8, 
+                "Uptake 3rd Does", 1, 12,
             )
             eg$x1 = colors
             # Color, discrete
             plot <- ggplot(eg, aes(x = x, y = y, color = x1)) +
-                geom_point(size = 50) +
+                geom_point(size = 60) +
                 guides(color = FALSE) +
                 theme(axis.text = element_blank(),
                       axis.title = element_blank(),
@@ -582,14 +580,17 @@ server <- function(input, output) {
     output$time_vaccine_plot <- renderPlot({
         df <- shown()
         if (!is.null(df$date)) {
-            df <- df %>%
+            time_df <- df %>%
                 head(14) %>%
                 select(-areaName) %>%
                 gather(key = "variable", value = "value", -date)
-            p <- ggplot(df, aes(x=date, y=value))+ 
+            p <- ggplot(time_df, aes(x=date, y=value))+ 
+                ggtitle(paste("The time series plot for vaccine does within latest 2 weeks in", df$areaName)) +
+                ylab("Proportion in %") +
+                xlab("Date") +
                 geom_line(aes(color = variable), size = 1) +
                 scale_color_manual(values = c(1,2,3,4)) +
-                theme_minimal()
+                theme(plot.title = element_text(face="bold"))
             return (p)
         }
     })
