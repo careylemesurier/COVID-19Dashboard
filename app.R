@@ -267,10 +267,10 @@ ui <- fluidPage(
                      actionButton("birmingham_vac", "Birmingham"),
                      actionButton("glasgow_vac", "Glasgow"),
                      fluidRow(
-                         plotOutput("proportions")
+                         plotlyOutput("proportions")
                      ),
                      fluidRow(
-                         plotOutput("time_vaccine_plot")
+                         plotlyOutput("time_vaccine_plot")
                      )
                  )
         )
@@ -677,7 +677,7 @@ server <- function(input, output) {
     observeEvent(input$glasgow_vac, {
         shown(glasgow_vac_df)
     })
-    output$proportions <- renderPlot({
+    output$proportions <- renderPlotly({
         df <- shown()
         if (!is.null(df$date)) {
             proportion <- df%>%
@@ -685,7 +685,7 @@ server <- function(input, output) {
             first_does = paste("Uptake 1st Does: \n", proportion$first_does, "%") 
             second_does = paste("Uptake 2nd Does: \n", proportion$second_does, "%")
             third_does = paste("Uptake 3rd Does: \n", proportion$third_does, "%")
-            colors = c("A", "A", "A")
+            colors = c("General", "General", "General")
             for (i in 1:3) {
                 check = proportion$first_does
                 if (i == 2) {
@@ -696,7 +696,7 @@ server <- function(input, output) {
                 }
                 # If the proportion > 80%, then the color would be green 
                 if (check > 80) {
-                    colors[i] = "B"
+                    colors[i] = "Safe"
                 }
             }
             
@@ -721,7 +721,7 @@ server <- function(input, output) {
                 return (plot)
         }
     })
-    output$time_vaccine_plot <- renderPlot({
+    output$time_vaccine_plot <- renderPlotly({
         df <- shown()
         if (!is.null(df$date)) {
             time_df <- df %>%
@@ -729,7 +729,7 @@ server <- function(input, output) {
                 select(-areaName) %>%
                 gather(key = "variable", value = "value", -date)
             p <- ggplot(time_df, aes(x=date, y=value))+ 
-                ggtitle(paste("The time series plot for vaccine does within latest 2 weeks in", df$areaName)) +
+                ggtitle(paste("The time series plot for vaccine does within latest 2 weeks in ", df$areaName)) +
                 ylab("Proportion in %") +
                 xlab("Date") +
                 geom_line(aes(color = variable), size = 1) +
