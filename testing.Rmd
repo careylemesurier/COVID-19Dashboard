@@ -98,7 +98,6 @@ for (city_df in cities){
     
     # set first row nas to 0
     filtered_data[1,is.na(filtered_data[1,])] <- 0
-    
     filtered_data$hospitalCases <- replaceNa(filtered_data$hospitalCases)
     filtered_data$cumCasesByPublishDate <- replaceNa(filtered_data$cumCasesByPublishDate)
     filtered_data$cumDeaths28DaysByDeathDate <- replaceNa(filtered_data$cumDeaths28DaysByDeathDate)
