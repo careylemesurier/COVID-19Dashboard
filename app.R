@@ -696,7 +696,7 @@ server <- function(input, output) {
                 }
                 # If the proportion > 80%, then the color would be green 
                 if (check > 80) {
-                    colors[i] = "Safe"
+                    colors[i] = "High"
                 }
             }
             
@@ -718,7 +718,8 @@ server <- function(input, output) {
                 annotate("text", x = 1, y=1, label=first_does) +
                 annotate("text", x = 2, y=1, label=second_does) +
                 annotate("text", x = 3, y=1, label=third_does)
-                return (plot)
+            plot <- ggplotly(plot) %>% config(displayModeBar = F)
+            return (plot)
         }
     })
     output$time_vaccine_plot <- renderPlotly({
@@ -729,7 +730,7 @@ server <- function(input, output) {
                 select(-areaName) %>%
                 gather(key = "variable", value = "value", -date)
             p <- ggplot(time_df, aes(x=date, y=value))+ 
-                ggtitle(paste("The time series plot for vaccine does within latest 2 weeks in ", df$areaName)) +
+                ggtitle(paste("The time series plot for vaccine does within latest 2 weeks in", df$areaName)) +
                 ylab("Proportion in %") +
                 xlab("Date") +
                 geom_line(aes(color = variable), size = 1) +
