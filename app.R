@@ -27,26 +27,71 @@ wales_df <- read_csv("data/wales.csv")
 north_df <- read_csv("data/north_ireland.csv")
 
 # city level statistics  ---------------------------------------------------
+# vaccine data  -----------------------------------------------------------
+edinburgh_vac_df <- read_csv("data/edinburgh_vac.csv") 
+birmingham_vac_df <- read_csv("data/birmingham_vac.csv")
+bristol_vac_df <- read_csv("data/bristol_vac.csv")
+cambridge_vac_df <- read_csv("data/cambridge_vac.csv")
+glasgow_vac_df <- read_csv("data/glasgow_vac.csv")
+# General data and merge -----------------------------------------------------------
 belfast_df <- read_csv("data/belfast.csv")
-belfast_df <- merge(belfast_df[, !names(belfast_df) %in% c('hospitalCases')], select(north_df, c('date','hospitalCases')), by='date')
+belfast_df <- merge(belfast_df[, !names(belfast_df) %in% c('hospitalCases')], select(north_df, c('date','hospitalCases')), by='date') 
+belfast_df <- belfast_df %>%
+    mutate(first_does = NA) %>%
+    mutate(second_does = NA) %>%
+    mutate(third_does = NA)
 
 cardiff_df <- read_csv("data/cardiff.csv")
 cardiff_df <- merge(cardiff_df[, !names(cardiff_df) %in% c('hospitalCases')], select(wales_df, c('date','hospitalCases')), by='date')
 names(cardiff_df)[names(cardiff_df) == 'cumDeaths28DaysByPublishDate'] <- 'cumDeaths28DaysByDeathDate'
+cardiff_df <- cardiff_df%>%
+    mutate(first_does = NA) %>%
+    mutate(second_does = NA) %>%
+    mutate(third_does = NA)
 
-edinburgh_df <- read_csv("data/edinburgh.csv")
+edinburgh_df <- read_csv("data/edinburgh.csv") %>%
+    merge(edinburgh_vac_df) %>%
+    mutate(first_does = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(second_does = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(third_does = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
+    select(-cumVaccinationFirstDoseUptakeByVaccinationDatePercentage, 
+           -cumVaccinationSecondDoseUptakeByVaccinationDatePercentage, -cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage)
 edinburgh_df <- merge(edinburgh_df[, !names(edinburgh_df) %in% c('hospitalCases')], select(scotland_df, c('date','hospitalCases')), by='date')
 
-birmingham_df <- read_csv("data/birmingham.csv")
+birmingham_df <- read_csv("data/birmingham.csv") %>%
+    merge(birmingham_vac_df) %>%
+    mutate(first_does = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(second_does = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(third_does = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
+    select(-cumVaccinationFirstDoseUptakeByVaccinationDatePercentage, 
+           -cumVaccinationSecondDoseUptakeByVaccinationDatePercentage, -cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage)
 birmingham_df <- merge(birmingham_df[, !names(birmingham_df) %in% c('hospitalCases')], select(england_df, c('date','hospitalCases')), by='date')
 
-bristol_df <- read_csv("data/bristol.csv")
+bristol_df <- read_csv("data/bristol.csv") %>%
+    merge(bristol_vac_df) %>%
+    mutate(first_does = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(second_does = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(third_does = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
+    select(-cumVaccinationFirstDoseUptakeByVaccinationDatePercentage, 
+           -cumVaccinationSecondDoseUptakeByVaccinationDatePercentage, -cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage)
 bristol_df <- merge(bristol_df[, !names(bristol_df) %in% c('hospitalCases')], select(england_df, c('date','hospitalCases')), by='date')
 
-cambridge_df <- read_csv("data/cambridge.csv")
+cambridge_df <- read_csv("data/cambridge.csv") %>%
+    merge(cambridge_vac_df) %>%
+    mutate(first_does = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(second_does = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(third_does = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
+    select(-cumVaccinationFirstDoseUptakeByVaccinationDatePercentage, 
+           -cumVaccinationSecondDoseUptakeByVaccinationDatePercentage, -cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage)
 cambridge_df <- merge(cambridge_df[, !names(cambridge_df) %in% c('hospitalCases')], select(england_df, c('date','hospitalCases')), by='date')
 
-glasgow_df <- read_csv("data/glasgow.csv")
+glasgow_df <- read_csv("data/glasgow.csv") %>%
+    merge(glasgow_vac_df) %>%
+    mutate(first_does = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(second_does = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(third_does = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
+    select(-cumVaccinationFirstDoseUptakeByVaccinationDatePercentage, 
+           -cumVaccinationSecondDoseUptakeByVaccinationDatePercentage, -cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage)
 glasgow_df <- merge(glasgow_df[, !names(glasgow_df) %in% c('hospitalCases')], select(scotland_df, c('date','hospitalCases')), by='date')
 
 # change date columns to date type
@@ -56,37 +101,6 @@ for (city_df in cities){
         mutate(date = as.Date(date, format= "%Y-%m-%d"))
 }
 
-# vaccine data  -----------------------------------------------------------
-edinburgh_vac_df <- read_csv("data/edinburgh_vac.csv") %>%
-    na.omit() %>%
-    mutate(first_does = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
-    mutate(second_does = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
-    mutate(third_does = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
-    select(areaName, date, first_does, second_does, third_does)
-birmingham_vac_df <- read_csv("data/birmingham_vac.csv")%>%
-    na.omit() %>%
-    mutate(first_does = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
-    mutate(second_does = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
-    mutate(third_does = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
-    select(areaName, date, first_does, second_does, third_does)
-bristol_vac_df <- read_csv("data/bristol_vac.csv") %>%
-    na.omit() %>%
-    mutate(first_does = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
-    mutate(second_does = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
-    mutate(third_does = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
-    select(areaName, date, first_does, second_does, third_does)
-cambridge_vac_df <- read_csv("data/cambridge_vac.csv") %>%
-    na.omit() %>%
-    mutate(first_does = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
-    mutate(second_does = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
-    mutate(third_does = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
-    select(areaName, date, first_does, second_does, third_does)
-glasgow_vac_df <- read_csv("data/glasgow_vac.csv") %>%
-    na.omit() %>%
-    mutate(first_does = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
-    mutate(second_does = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
-    mutate(third_does = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
-    select(areaName, date, first_does, second_does, third_does)
 
 # Location data  -----------------------------------------------------------
 city_locations <- data.frame(matrix(ncol = 3, nrow = 0))
@@ -103,10 +117,10 @@ city_locations[nrow(city_locations) + 1,] <- c('Glasgow City', 55.8642, -4.2518)
 
 # Combining all Cities Data -------------------------------------------------------------------
 # initialize data frame with just the headers of a city df
-all_cities_df <- belfast_df[0,]
+all_cities_df <- birmingham_df[0,]
 
 # Initialize variables for today and one week prior
-today <- max(belfast_df$date)
+today <- max(birmingham_df$date)
 earliest_date <- today - as.difftime(7, unit="days")
 
 replaceNa <- function(x) {
@@ -126,6 +140,9 @@ for (city_df in cities){
     filtered_data$hospitalCases <- replaceNa(filtered_data$hospitalCases)
     filtered_data$cumCasesByPublishDate <- replaceNa(filtered_data$cumCasesByPublishDate)
     filtered_data$cumDeaths28DaysByDeathDate <- replaceNa(filtered_data$cumDeaths28DaysByDeathDate)
+    filtered_data$first_does <- replaceNa(filtered_data$first_does)
+    filtered_data$second_does <- replaceNa(filtered_data$second_does)
+    filtered_data$third_does <- replaceNa(filtered_data$third_does)
     
     # for daily stat columns replace nas with 0
     filtered_data[is.na(filtered_data)] <- 0
@@ -266,6 +283,8 @@ ui <- fluidPage(
                      actionButton("edinburgh_vac", "Edingburgh"),
                      actionButton("birmingham_vac", "Birmingham"),
                      actionButton("glasgow_vac", "Glasgow"),
+                     actionButton("belfast_vac", "Belfast"),
+                     actionButton("cardiff_vac", "Cardiff"),
                      fluidRow(
                          plotlyOutput("proportions")
                      ),
@@ -646,8 +665,8 @@ server <- function(input, output) {
                         prefix = (percent_increase_df %>% filter(areaName==city))$pos,
                         suffix="%", 
                         font=list(
-                            color=(percent_increase_df %>% filter(areaName==city))$group)),
-                            #size = 25)),
+                            color=(percent_increase_df %>% filter(areaName==city))$group,
+                            size = 25)),
                     domain = list(x = c((i-1)/7+0.02, i/7-0.02)),
                     title =list(text = city_title,
                                 font=list(
@@ -663,40 +682,57 @@ server <- function(input, output) {
     # Vaccine Page text
     shown <- reactiveVal()
     observeEvent(input$bristol_vac, {
-        shown(bristol_vac_df)
+        shown("Bristol, City of")
     })
     observeEvent(input$cambridge_vac, {
-        shown(cambridge_vac_df)
+        shown("Cambridgeshire")
     })
     observeEvent(input$edinburgh_vac, {
-        shown(edinburgh_vac_df)
+        shown("City of Edinburgh")
     })
     observeEvent(input$birmingham_vac, {
-        shown(birmingham_vac_df)
+        shown("Birmingham")
     })
     observeEvent(input$glasgow_vac, {
-        shown(glasgow_vac_df)
+        shown("Glasgow City")
+    })
+    observeEvent(input$belfast_vac, {
+        shown("Belfast")
+    })
+    observeEvent(input$cardiff_vac, {
+        shown("Cardiff")
     })
     output$proportions <- renderPlotly({
-        df <- shown()
-        if (!is.null(df$date)) {
-            proportion <- df%>%
-                head(1)
-            first_does = paste("Uptake 1st Does: \n", proportion$first_does, "%") 
-            second_does = paste("Uptake 2nd Does: \n", proportion$second_does, "%")
-            third_does = paste("Uptake 3rd Does: \n", proportion$third_does, "%")
-            colors = c("General", "General", "General")
-            for (i in 1:3) {
-                check = proportion$first_does
-                if (i == 2) {
-                    check = proportion$second_does
-                }
-                if (i == 3) {
-                    check = proportion$third_does
-                }
-                # If the proportion > 80%, then the color would be green 
-                if (check > 80) {
-                    colors[i] = "High"
+        city <- shown()
+        if (!is.null(city)) {
+            first_does_percentage = "NA"
+            second_does_percentage = "NA"
+            third_does_percentage = "NA"
+            if (city != "Belfast" && city != "Cardiff") {
+                proportion <- all_cities_df %>%
+                    filter(areaName==city) %>%
+                    tail(1)
+                first_does_percentage = proportion$first_does
+                second_does_percentage = proportion$second_does
+                third_does_percentage = proportion$third_does
+            }
+            first_does = paste("Uptake 1st Does: \n", first_does_percentage, "%") 
+            second_does = paste("Uptake 2nd Does: \n", second_does_percentage, "%")
+            third_does = paste("Uptake 3rd Does: \n", third_does_percentage, "%")
+            colors = c("General(<=80%)", "General(<=80%)", "General(<=80%)")
+            if (first_does_percentage != "NA") {
+                for (i in 1:3) {
+                    check = first_does_percentage
+                    if (i == 2) {
+                        check = second_does_percentage
+                    }
+                    if (i == 3) {
+                        check = third_does_percentage
+                    }
+                    # If the proportion > 80%, then the color would be green 
+                    if (check > 80) {
+                        colors[i] = "High(>80%)"
+                    }
                 }
             }
             
@@ -709,11 +745,14 @@ server <- function(input, output) {
             eg$x1 = colors
             # Color, discrete
             plot <- ggplot(eg, aes(x = x, y = y, color = x1)) +
+                ggtitle(paste("Current uptake vaccine does proportion in", city)) +
                 geom_point(size = 60) +
                 guides(color = FALSE) +
                 theme(axis.text = element_blank(),
-                      axis.title = element_blank(),
+                      axis.title.x = element_blank(),
+                      axis.title.y = element_blank(),
                       axis.ticks = element_blank(),
+                      plot.title = element_text(face="bold"),
                       panel.background = element_rect(fill = "transparent",colour = NA)) +
                 annotate("text", x = 1, y=1, label=first_does) +
                 annotate("text", x = 2, y=1, label=second_does) +
@@ -723,14 +762,17 @@ server <- function(input, output) {
         }
     })
     output$time_vaccine_plot <- renderPlotly({
-        df <- shown()
-        if (!is.null(df$date)) {
-            time_df <- df %>%
-                head(14) %>%
-                select(-areaName) %>%
+        city <- shown()
+        if (!is.null(city)) {
+            time_df <- all_cities_df %>%
+                filter(areaName == city) %>%
+                select(date, first_does, second_does, third_does) %>%
                 gather(key = "variable", value = "value", -date)
+            if (city == "Belfast" || city == "Cardiff") {
+                time_df$value = NA
+            }
             p <- ggplot(time_df, aes(x=date, y=value))+ 
-                ggtitle(paste("The time series plot for vaccine does within latest 2 weeks in", df$areaName)) +
+                ggtitle(paste("The time series plot for vaccine does in", city)) +
                 ylab("Proportion in %") +
                 xlab("Date") +
                 geom_line(aes(color = variable), size = 1) +
