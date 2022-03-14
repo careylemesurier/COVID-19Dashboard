@@ -37,59 +37,59 @@ glasgow_vac_df <- read_csv("data/glasgow_vac.csv")
 belfast_df <- read_csv("data/belfast.csv")
 belfast_df <- merge(belfast_df[, !names(belfast_df) %in% c('hospitalCases')], select(north_df, c('date','hospitalCases')), by='date') 
 belfast_df <- belfast_df %>%
-    mutate(first_does = NA) %>%
-    mutate(second_does = NA) %>%
-    mutate(third_does = NA)
+    mutate(first_dose = NA) %>%
+    mutate(second_dose = NA) %>%
+    mutate(third_dose = NA)
 
 cardiff_df <- read_csv("data/cardiff.csv")
 cardiff_df <- merge(cardiff_df[, !names(cardiff_df) %in% c('hospitalCases')], select(wales_df, c('date','hospitalCases')), by='date')
 names(cardiff_df)[names(cardiff_df) == 'cumDeaths28DaysByPublishDate'] <- 'cumDeaths28DaysByDeathDate'
 cardiff_df <- cardiff_df%>%
-    mutate(first_does = NA) %>%
-    mutate(second_does = NA) %>%
-    mutate(third_does = NA)
+    mutate(first_dose = NA) %>%
+    mutate(second_dose = NA) %>%
+    mutate(third_dose = NA)
 
 edinburgh_df <- read_csv("data/edinburgh.csv") %>%
     merge(edinburgh_vac_df) %>%
-    mutate(first_does = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
-    mutate(second_does = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
-    mutate(third_does = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
+    mutate(first_dose = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(second_dose = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(third_dose = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
     select(-cumVaccinationFirstDoseUptakeByVaccinationDatePercentage, 
            -cumVaccinationSecondDoseUptakeByVaccinationDatePercentage, -cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage)
 edinburgh_df <- merge(edinburgh_df[, !names(edinburgh_df) %in% c('hospitalCases')], select(scotland_df, c('date','hospitalCases')), by='date')
 
 birmingham_df <- read_csv("data/birmingham.csv") %>%
     merge(birmingham_vac_df) %>%
-    mutate(first_does = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
-    mutate(second_does = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
-    mutate(third_does = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
+    mutate(first_dose = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(second_dose = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(third_dose = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
     select(-cumVaccinationFirstDoseUptakeByVaccinationDatePercentage, 
            -cumVaccinationSecondDoseUptakeByVaccinationDatePercentage, -cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage)
 birmingham_df <- merge(birmingham_df[, !names(birmingham_df) %in% c('hospitalCases')], select(england_df, c('date','hospitalCases')), by='date')
 
 bristol_df <- read_csv("data/bristol.csv") %>%
     merge(bristol_vac_df) %>%
-    mutate(first_does = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
-    mutate(second_does = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
-    mutate(third_does = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
+    mutate(first_dose = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(second_dose = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(third_dose = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
     select(-cumVaccinationFirstDoseUptakeByVaccinationDatePercentage, 
            -cumVaccinationSecondDoseUptakeByVaccinationDatePercentage, -cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage)
 bristol_df <- merge(bristol_df[, !names(bristol_df) %in% c('hospitalCases')], select(england_df, c('date','hospitalCases')), by='date')
 
 cambridge_df <- read_csv("data/cambridge.csv") %>%
     merge(cambridge_vac_df) %>%
-    mutate(first_does = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
-    mutate(second_does = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
-    mutate(third_does = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
+    mutate(first_dose = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(second_dose = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(third_dose = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
     select(-cumVaccinationFirstDoseUptakeByVaccinationDatePercentage, 
            -cumVaccinationSecondDoseUptakeByVaccinationDatePercentage, -cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage)
 cambridge_df <- merge(cambridge_df[, !names(cambridge_df) %in% c('hospitalCases')], select(england_df, c('date','hospitalCases')), by='date')
 
 glasgow_df <- read_csv("data/glasgow.csv") %>%
     merge(glasgow_vac_df) %>%
-    mutate(first_does = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
-    mutate(second_does = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
-    mutate(third_does = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
+    mutate(first_dose = cumVaccinationFirstDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(second_dose = cumVaccinationSecondDoseUptakeByVaccinationDatePercentage) %>%
+    mutate(third_dose = cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage) %>%
     select(-cumVaccinationFirstDoseUptakeByVaccinationDatePercentage, 
            -cumVaccinationSecondDoseUptakeByVaccinationDatePercentage, -cumVaccinationThirdInjectionUptakeByVaccinationDatePercentage)
 glasgow_df <- merge(glasgow_df[, !names(glasgow_df) %in% c('hospitalCases')], select(scotland_df, c('date','hospitalCases')), by='date')
@@ -140,9 +140,9 @@ for (city_df in cities){
     filtered_data$hospitalCases <- replaceNa(filtered_data$hospitalCases)
     filtered_data$cumCasesByPublishDate <- replaceNa(filtered_data$cumCasesByPublishDate)
     filtered_data$cumDeaths28DaysByDeathDate <- replaceNa(filtered_data$cumDeaths28DaysByDeathDate)
-    filtered_data$first_does <- replaceNa(filtered_data$first_does)
-    filtered_data$second_does <- replaceNa(filtered_data$second_does)
-    filtered_data$third_does <- replaceNa(filtered_data$third_does)
+    filtered_data$first_dose <- replaceNa(filtered_data$first_dose)
+    filtered_data$second_dose <- replaceNa(filtered_data$second_dose)
+    filtered_data$third_dose <- replaceNa(filtered_data$third_dose)
     
     # for daily stat columns replace nas with 0
     filtered_data[is.na(filtered_data)] <- 0
@@ -177,7 +177,7 @@ last7days_df_summarize <- merge(last7days_df_summarize, city_locations, by='area
 #so I can get percent increase from last week to this week 
 
 # get latest date in data
-today <- max(belfast_df$date)
+today <- max(birmingham_df$date)
 earliest_date <- today - as.difftime(7, unit="days")
 two_weeks_ago_date <- today - as.difftime(14, unit="days")
 
@@ -277,7 +277,6 @@ ui <- fluidPage(
         ),
         tabPanel("Vaccination Rates", 
                  fluidPage(
-                     htmlOutput("vaccinePage"),
                      actionButton("bristol_vac", "Bristol"),
                      actionButton("cambridge_vac", "Cambridge"),
                      actionButton("edinburgh_vac", "Edingburgh"),
@@ -285,6 +284,9 @@ ui <- fluidPage(
                      actionButton("glasgow_vac", "Glasgow"),
                      actionButton("belfast_vac", "Belfast"),
                      actionButton("cardiff_vac", "Cardiff"),
+                     fluidRow(
+                         htmlOutput("vaccPage")
+                         ),
                      fluidRow(
                          plotlyOutput("proportions")
                      ),
@@ -298,22 +300,6 @@ ui <- fluidPage(
     
 ))
 
-
-
-
-casePage <- fluidPage(
-    titlePanel("Cases, Deaths, and Hospitalizations"),
-    fluidRow(
-        p("This section is intended to provide a more detailed look into the changing conditions of the 
-        pandemic. Users can navigate through the various cities, metrics, and dates to assess the
-        current status of the pandemic, and compare that to historic data for reference. \n
-        
-        The Map Visual (left) shows the relative 
-        size of the chosen metric for each city, this week, with the selected city indicated in blue.
-        The Line Graph (right), shows the chosen metric, for the selected city, over
-        the date range selected.\n")
-    )
-)
 
 homePage <- fluidPage(
     fluidRow(h3("Objective")),
@@ -336,13 +322,39 @@ homePage <- fluidPage(
           this week. "))
     )
 
+casePage <- fluidPage(
+    titlePanel("Cases, Deaths, and Hospitalizations"),
+    fluidRow(
+        p("This section is intended to provide a more detailed look into the changing conditions of the 
+        pandemic. Users can navigate through the various cities, metrics, and dates to assess the
+        current status of the pandemic, and compare that to historic data for reference. \n
+        
+        The Map Visual (left) shows the relative 
+        size of the chosen metric for each city, this week, with the selected city indicated in blue.
+        The Line Graph (right), shows the chosen metric, for the selected city, over
+        the date range selected.\n")
+    )
+)
+
+vaccPage <- fluidPage(
+    titlePanel("Vaccination Rates"),
+    fluidRow(
+        p("This section is intended to provide an overview of the proportion of the population that is 
+          vaccinated in each city, broken down by number of doses. A threshold of 80% of the population
+          being vaccinated indicates a high vaccination rate (shown in green). The time series plot
+          shows how vaccination rates have progressed over the course of the pandemic. Click a city name above
+          to view the results. \n")
+    )
+)
+
 
 # Define server logic ------------------------------------------------------------------------
 server <- function(input, output) {
     # homepage text
     output$homePage <- renderUI(homePage)
     output$casePage <- renderUI(casePage)
-
+    output$vaccPage <- renderUI(vaccPage)
+    
     # case count plot
     output$map_plot <- renderPlotly({
         selected_city <- input$city
@@ -370,7 +382,10 @@ server <- function(input, output) {
                 scale_color_manual(guide = "none",
                                    values=c("#6bb9fc","black")) +
                 scale_size_continuous(name = paste("Number of",selected_metric)) +
-                theme(legend.position='right')
+                theme(legend.position='right')+
+                guides(color = FALSE) +
+                theme(axis.ticks = element_blank(),
+                      panel.background = element_rect(fill = "transparent",colour = NA))
         }
         else if (selected_metric=="New Deaths"){
             map_p <-ggplot() +
@@ -390,7 +405,10 @@ server <- function(input, output) {
                 scale_color_manual(guide = "none",
                                    values=c("#6bb9fc","black")) +
                 scale_size_continuous(name=paste("Number of",selected_metric)) +
-                theme(legend.position='right')
+                theme(legend.position='right')+
+                guides(color = FALSE) +
+                theme(axis.ticks = element_blank(),
+                      panel.background = element_rect(fill = "transparent",colour = NA))
         }
         else if (selected_metric=="Current Hospitalizations"){
             map_p <-ggplot() +
@@ -410,7 +428,10 @@ server <- function(input, output) {
                 scale_color_manual(guide = "none",
                                    values=c("#6bb9fc","black")) +
                 scale_size_continuous(name=paste("Number of",selected_metric)) +
-                theme(legend.position='right')
+                theme(legend.position='right')+
+                guides(color = FALSE) +
+                theme(axis.ticks = element_blank(),
+                      panel.background = element_rect(fill = "transparent",colour = NA))
         }
         else if (selected_metric=="Total Cases"){
             map_p <-ggplot() +
@@ -430,7 +451,10 @@ server <- function(input, output) {
                 scale_color_manual(guide = "none",
                                    values=c("#6bb9fc","black")) +
                 scale_size_continuous(name=paste("Number of",selected_metric)) +
-                theme(legend.position='right')
+                theme(legend.position='right')+
+                guides(color = FALSE) +
+                theme(axis.ticks = element_blank(),
+                      panel.background = element_rect(fill = "transparent",colour = NA))
         }
         else{
             map_p <-ggplot() +
@@ -450,11 +474,15 @@ server <- function(input, output) {
                 scale_color_manual(guide = "none",
                                    values=c("#6bb9fc","black")) +
                 scale_size_continuous(name=paste("Number of",selected_metric)) +
-                theme(legend.position='right')
+                theme(legend.position='right')+
+                guides(color = FALSE) +
+                theme(axis.ticks = element_blank(),
+                      panel.background = element_rect(fill = "transparent",colour = NA))
         }
 
         map_plotly_plot <- ggplotly(map_p, tooltip="text")%>%
-            layout(showlegend = FALSE)
+            layout(showlegend = FALSE) %>% 
+            config(displayModeBar = F)
     
         return(map_plotly_plot)
     })
@@ -486,7 +514,7 @@ server <- function(input, output) {
                 scale_color_manual(guide = "none",
                                    values=c("#6bb9fc","black")) +
                 scale_size_continuous(name=selected_metric) +  #paste("Number of",selected_metric)) +
-                theme(legend.position='right')
+                theme(legend.position='right') 
         }
         else if (selected_metric=="New Deaths"){
             map_p <-ggplot() +
@@ -617,7 +645,8 @@ server <- function(input, output) {
                 theme_grey()
         }
         
-        line_plotly_plot <- ggplotly(line_p, tooltip="text")
+        line_plotly_plot <- ggplotly(line_p, tooltip="text") %>% 
+            config(displayModeBar = F)
         
         return(line_plotly_plot)
     })
@@ -631,9 +660,9 @@ server <- function(input, output) {
         h[["Current Hospitalizations"]] <- percent_increase_df$hospitalCases
 
         selected_metric <- h[[input$metric_home]]
-        
+       
         # calculate group, label, and prefix columns based on the selected metric, to update the visualization
-        percent_increase_df$group <- ifelse(selected_metric<0,"green",ifelse(selected_metric==0,"grey","red"))
+        percent_increase_df$group <- ifelse(selected_metric<0,"#006400",ifelse(selected_metric==0,"grey","#B22222"))
         percent_increase_df$label_percent <- round(selected_metric, digits=0)
         percent_increase_df$pos <- ifelse(selected_metric==0,"~ ",
             ifelse(selected_metric>=10,"+",
@@ -705,29 +734,29 @@ server <- function(input, output) {
     output$proportions <- renderPlotly({
         city <- shown()
         if (!is.null(city)) {
-            first_does_percentage = "NA"
-            second_does_percentage = "NA"
-            third_does_percentage = "NA"
+            first_dose_percentage = "NA"
+            second_dose_percentage = "NA"
+            third_dose_percentage = "NA"
             if (city != "Belfast" && city != "Cardiff") {
                 proportion <- all_cities_df %>%
                     filter(areaName==city) %>%
                     tail(1)
-                first_does_percentage = proportion$first_does
-                second_does_percentage = proportion$second_does
-                third_does_percentage = proportion$third_does
+                first_dose_percentage = proportion$first_dose
+                second_dose_percentage = proportion$second_dose
+                third_dose_percentage = proportion$third_dose
             }
-            first_does = paste("Uptake 1st Does: \n", first_does_percentage, "%") 
-            second_does = paste("Uptake 2nd Does: \n", second_does_percentage, "%")
-            third_does = paste("Uptake 3rd Does: \n", third_does_percentage, "%")
+            first_dose = paste0("1st Dose: \n", first_dose_percentage, "%") 
+            second_dose = paste0("2nd Dose: \n", second_dose_percentage, "%")
+            third_dose = paste0("3rd Dose: \n", third_dose_percentage, "%")
             colors = c("General(<=80%)", "General(<=80%)", "General(<=80%)")
-            if (first_does_percentage != "NA") {
+            if (first_dose_percentage != "NA") {
                 for (i in 1:3) {
-                    check = first_does_percentage
+                    check = first_dose_percentage
                     if (i == 2) {
-                        check = second_does_percentage
+                        check = second_dose_percentage
                     }
                     if (i == 3) {
-                        check = third_does_percentage
+                        check = third_dose_percentage
                     }
                     # If the proportion > 80%, then the color would be green 
                     if (check > 80) {
@@ -738,25 +767,28 @@ server <- function(input, output) {
             
             eg <- tribble(
                 ~x, ~y, ~size, 
-                "Uptake 1st Does", 1, 4, 
-                "Uptake 2nd Does", 1, 8, 
-                "Uptake 3rd Does", 1, 12,
+                "1st Dose", 1, 4, 
+                "2nd Dose", 1, 8, 
+                "3rd Dose", 1, 12,
             )
             eg$x1 = colors
+            
             # Color, discrete
             plot <- ggplot(eg, aes(x = x, y = y, color = x1)) +
-                ggtitle(paste("Current uptake vaccine does proportion in", city)) +
-                geom_point(size = 60) +
+                ggtitle(paste("Current Vaccination Rates in", city)) +
+                geom_point(size=60)+
                 guides(color = FALSE) +
                 theme(axis.text = element_blank(),
                       axis.title.x = element_blank(),
                       axis.title.y = element_blank(),
                       axis.ticks = element_blank(),
-                      plot.title = element_text(face="bold"),
+                      #plot.title = element_text(face="bold"),
                       panel.background = element_rect(fill = "transparent",colour = NA)) +
-                annotate("text", x = 1, y=1, label=first_does) +
-                annotate("text", x = 2, y=1, label=second_does) +
-                annotate("text", x = 3, y=1, label=third_does)
+                annotate("text", x = 1, y=1, label=first_dose, colour='white', size=5) +
+                annotate("text", x = 2, y=1, label=second_dose, colour='white', size=5) +
+                annotate("text", x = 3, y=1, label=third_dose, colour='white', size=5) +
+                scale_color_manual(guide = "none",
+                               values=c("#B22222","#006400")) 
             plot <- ggplotly(plot) %>% config(displayModeBar = F)
             return (plot)
         }
@@ -766,18 +798,26 @@ server <- function(input, output) {
         if (!is.null(city)) {
             time_df <- all_cities_df %>%
                 filter(areaName == city) %>%
-                select(date, first_does, second_does, third_does) %>%
+                select(date, first_dose, second_dose, third_dose) %>%
                 gather(key = "variable", value = "value", -date)
+
             if (city == "Belfast" || city == "Cardiff") {
                 time_df$value = NA
             }
             p <- ggplot(time_df, aes(x=date, y=value))+ 
-                ggtitle(paste("The time series plot for vaccine does in", city)) +
-                ylab("Proportion in %") +
+                ggtitle(paste("Time Series Plot for Vaccination Rates in", city)) +
+                ylab("Proportion of Population (%)") +
                 xlab("Date") +
-                geom_line(aes(color = variable), size = 1) +
-                scale_color_manual(values = c(1,2,3,4)) +
-                theme(plot.title = element_text(face="bold"))
+                geom_line(aes(color = variable))+ #size = 1) +
+                #scale_color_manual(values = c(1,2,3,4)) +
+                theme_grey()+
+                theme(axis.title.x = element_text(),
+                      axis.title.y = element_text(),
+                      axis.ticks = element_line()) +
+                scale_color_manual(guide = "none",
+                                   values=c("#8cc5fd","#0379b7", "#001544"))
+                
+                #theme(plot.title = element_text(face="bold"))
             return (p)
         }
     })
