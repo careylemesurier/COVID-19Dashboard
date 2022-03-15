@@ -310,11 +310,11 @@ homePage <- fluidPage(
         h3("Intended Use")),
     fluidRow(
         p("The dashboard can be used to monitor the current status of the pandemic 
-        with respect to case counts and vaccine impacts, targeted to just the cities of Intrest 
+        with respect to case counts and vaccination rates, targeted to just the cities of Intrest 
         for Company X. The information on this dashboard can help executives at Company X closely 
         monitor changes to make informed and efficient policy changes. The dashboard can also be 
-        used for supporting longer term decisions around vaccine mandates acording to the Vaccine 
-        Impact tab.")),
+        used for supporting longer term decisions around vaccine mandates acording to the Vaccination 
+        Rates tab.")),
     fluidRow(
         h3("Weekly Update ")),
     fluidRow(
@@ -664,11 +664,7 @@ server <- function(input, output) {
         # calculate group, label, and prefix columns based on the selected metric, to update the visualization
         percent_increase_df$group <- ifelse(selected_metric<0,"#006400",ifelse(selected_metric==0,"grey","#B22222"))
         percent_increase_df$label_percent <- round(selected_metric, digits=0)
-        percent_increase_df$pos <- ifelse(selected_metric==0,"~ ",
-            ifelse(selected_metric>=10,"+",
-                   ifelse(selected_metric<=-10,"",
-                          ifelse(selected_metric>0,"+ ",
-                                 ifelse(selected_metric<0," ","")))))   
+        percent_increase_df$pos <- ifelse(selected_metric==0,"~",ifelse(selected_metric>0,"+",""))
             
         fig <- plot_ly()
         
