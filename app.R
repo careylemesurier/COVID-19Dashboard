@@ -158,129 +158,50 @@ server <- function(input, output) {
     
     # case count plot
     output$map_plot <- renderPlotly({
+        h <- hash() 
+        h[["New Cases"]] <- last7days_df_summarize$newCasesByPublishDate
+        h[["New Deaths"]] <- last7days_df_summarize$newDeaths28DaysByPublishDate
+        h[["Current Hospitalizations"]] <- last7days_df_summarize$hospitalCases
+        h[["Total Cases"]] <- last7days_df_summarize$cumCasesByPublishDate
+        h[["Total Deaths"]] <- last7days_df_summarize$cumDeaths28DaysByDeathDate
+        
         selected_city <- input$city
-        selected_metric <- input$metric
+        selected_metric_name <- input$metric
+        selected_metric <- h[[selected_metric_name]]
+        selected_metric_name_tooltip <- ifelse(selected_metric_name=="New Cases","New Cases this week",
+                                               ifelse(selected_metric_name=="New Deaths","New Deaths this week",selected_metric_name))
         
         last7days_df_summarize$selected = ifelse(last7days_df_summarize$areaName==selected_city,"1","2")
         
         world_map <- map_data("world")
         
-        if (selected_metric=="New Cases"){
-            map_p <-ggplot() +
-                geom_polygon(data = world_map, 
-                             aes(x = long, y = lat, group=group), 
-                             fill="lightgrey", colour = "white") + 
-                coord_fixed(ratio = 1.3, 
-                            xlim = c(-10,3), 
-                            ylim = c(50, 59)) + 
-                theme_void() +
-                geom_point(data = last7days_df_summarize, 
-                           aes(x = as.numeric(long), y = as.numeric(lat), 
-                               size = newCasesByPublishDate, 
-                               colour = selected,
-                               text = paste("City: ", areaName, 
-                                            "<br>New Cases this week: ", newCasesByPublishDate))) +
-                scale_color_manual(guide = "none",
-                                   values=c("#6bb9fc","black")) +
-                scale_size_continuous(name = paste("Number of",selected_metric)) +
-                theme(legend.position='right')+
-                guides(color = FALSE) +
-                theme(axis.ticks = element_blank(),
-                      panel.background = element_rect(fill = "transparent",colour = NA))
-        }
-        else if (selected_metric=="New Deaths"){
-            map_p <-ggplot() +
-                geom_polygon(data = world_map, 
-                             aes(x = long, y = lat, group=group), 
-                             fill="lightgrey", colour = "white") + 
-                coord_fixed(ratio = 1.3, 
-                            xlim = c(-10,3), 
-                            ylim = c(50, 59)) + 
-                theme_void() +
-                geom_point(data = last7days_df_summarize, 
-                           aes(x = as.numeric(long), y = as.numeric(lat), 
-                               size = newDeaths28DaysByPublishDate, 
-                               colour = selected,
-                               text = paste("City: ", areaName,
-                                            "<br>Total Deaths this week: ", newDeaths28DaysByPublishDate))) +
-                scale_color_manual(guide = "none",
-                                   values=c("#6bb9fc","black")) +
-                scale_size_continuous(name=paste("Number of",selected_metric)) +
-                theme(legend.position='right')+
-                guides(color = FALSE) +
-                theme(axis.ticks = element_blank(),
-                      panel.background = element_rect(fill = "transparent",colour = NA))
-        }
-        else if (selected_metric=="Current Hospitalizations"){
-            map_p <-ggplot() +
-                geom_polygon(data = world_map, 
-                             aes(x = long, y = lat, group=group), 
-                             fill="lightgrey", colour = "white") + 
-                coord_fixed(ratio = 1.3, 
-                            xlim = c(-10,3), 
-                            ylim = c(50, 59)) + 
-                theme_void() +
-                geom_point(data = last7days_df_summarize, 
-                           aes(x = as.numeric(long), y = as.numeric(lat), 
-                               size = hospitalCases, 
-                               colour = selected,
-                               text = paste("City: ", areaName,
-                                            "<br>Hospitalizations this week: ", hospitalCases))) +
-                scale_color_manual(guide = "none",
-                                   values=c("#6bb9fc","black")) +
-                scale_size_continuous(name=paste("Number of",selected_metric)) +
-                theme(legend.position='right')+
-                guides(color = FALSE) +
-                theme(axis.ticks = element_blank(),
-                      panel.background = element_rect(fill = "transparent",colour = NA))
-        }
-        else if (selected_metric=="Total Cases"){
-            map_p <-ggplot() +
-                geom_polygon(data = world_map, 
-                             aes(x = long, y = lat, group=group), 
-                             fill="lightgrey", colour = "white") + 
-                coord_fixed(ratio = 1.3, 
-                            xlim = c(-10,3), 
-                            ylim = c(50, 59)) + 
-                theme_void() +
-                geom_point(data = last7days_df_summarize, 
-                           aes(x = as.numeric(long), y = as.numeric(lat), 
-                               size = cumCasesByPublishDate, 
-                               colour = selected,
-                               text = paste("City: ", areaName,
-                                            "<br>Total Cases: ", cumCasesByPublishDate))) +
-                scale_color_manual(guide = "none",
-                                   values=c("#6bb9fc","black")) +
-                scale_size_continuous(name=paste("Number of",selected_metric)) +
-                theme(legend.position='right')+
-                guides(color = FALSE) +
-                theme(axis.ticks = element_blank(),
-                      panel.background = element_rect(fill = "transparent",colour = NA))
-        }
-        else{
-            map_p <-ggplot() +
-                geom_polygon(data = world_map, 
-                             aes(x = long, y = lat, group=group), 
-                             fill="lightgrey", colour = "white") + 
-                coord_fixed(ratio = 1.3, 
-                            xlim = c(-10,3), 
-                            ylim = c(50, 59)) + 
-                theme_void() +
-                geom_point(data = last7days_df_summarize, 
-                           aes(x = as.numeric(long), y = as.numeric(lat), 
-                               size = cumDeaths28DaysByDeathDate, 
-                               colour = selected,
-                               text = paste("City: ", areaName,
-                                            "<br>Total Deaths: ", cumDeaths28DaysByDeathDate))) +
-                scale_color_manual(guide = "none",
-                                   values=c("#6bb9fc","black")) +
-                scale_size_continuous(name=paste("Number of",selected_metric)) +
-                theme(legend.position='right')+
-                guides(color = FALSE) +
-                theme(axis.ticks = element_blank(),
-                      panel.background = element_rect(fill = "transparent",colour = NA))
-        }
-
+        map_p <- ggplot() +
+            geom_polygon(data = world_map,
+                         aes(x = long, y = lat, group=group),
+                         fill="lightgrey", colour = "white") +
+            coord_fixed(ratio = 1.3,
+                        xlim = c(-10,3),
+                        ylim = c(50, 59)) +
+            theme_void() +
+            geom_point(data = last7days_df_summarize,
+                       aes(x = as.numeric(long), y = as.numeric(lat),
+                           size = selected_metric,
+                           colour = selected,
+                           text = paste("City:", areaName,
+                                        "<br>", selected_metric_name_tooltip ,":", selected_metric))) +
+            scale_color_manual(guide = "none",
+                               values=c("#6bb9fc","black")) +
+            scale_size_continuous(name=paste("Number of",selected_metric_name)) +
+            theme(legend.position='right')+
+            guides(color = "none") +
+            ggtitle(paste(selected_metric_name_tooltip, "by City")) +
+            theme(axis.ticks = element_blank(),
+                  panel.background = element_rect(fill = "transparent",colour = NA),
+                  title = element_text(colour = "#55595c",
+                                       size = 10),
+                  axis.line = element_blank(),
+                  panel.grid = element_blank())
+        
         map_plotly_plot <- ggplotly(map_p, tooltip="text")%>%
             layout(showlegend = FALSE) %>% 
             config(displayModeBar = F)
@@ -288,125 +209,42 @@ server <- function(input, output) {
         return(map_plotly_plot)
     })
     
-    # case count map legend
+    # case count map legend - ggplotly does not support bubble size legends currently
+    # so I needed to make a separate plot of just the legend and render it as a plot not plotly
     output$map_plot_legend <- renderPlot({
+        h <- hash() 
+        h[["New Cases"]] <- last7days_df_summarize$newCasesByPublishDate
+        h[["New Deaths"]] <- last7days_df_summarize$newDeaths28DaysByPublishDate
+        h[["Current Hospitalizations"]] <- last7days_df_summarize$hospitalCases
+        h[["Total Cases"]] <- last7days_df_summarize$cumCasesByPublishDate
+        h[["Total Deaths"]] <- last7days_df_summarize$cumDeaths28DaysByDeathDate
+        
         selected_city <- input$city
-        selected_metric <- input$metric
+        selected_metric_name <- input$metric
+        selected_metric <- h[[selected_metric_name]]
         
         last7days_df_summarize$selected = ifelse(last7days_df_summarize$areaName==selected_city,"1","2")
         
         world_map <- map_data("world")
-        
-        if (selected_metric=="New Cases"){
-            map_p <-ggplot() +
-                geom_polygon(data = world_map, 
-                             aes(x = long, y = lat, group=group), 
-                             fill="lightgrey", colour = "white") + 
-                coord_fixed(ratio = 1.3, 
-                            xlim = c(-10,3), 
-                            ylim = c(50, 59)) + 
-                theme_void() +
-                geom_point(data = last7days_df_summarize, 
-                           aes(x = as.numeric(long), y = as.numeric(lat), 
-                               size = newCasesByPublishDate, 
-                               colour = selected,
-                               text = paste("City: ", areaName, 
-                                            "<br>New Cases this week: ", newCasesByPublishDate))) +
-                scale_color_manual(guide = "none",
-                                   values=c("#6bb9fc","black")) +
-                scale_size_continuous(name=selected_metric) +  #paste("Number of",selected_metric)) +
-                theme(legend.position='right') 
-        }
-        else if (selected_metric=="New Deaths"){
-            map_p <-ggplot() +
-                geom_polygon(data = world_map, 
-                             aes(x = long, y = lat, group=group), 
-                             fill="lightgrey", colour = "white") + 
-                coord_fixed(ratio = 1.3, 
-                            xlim = c(-10,3), 
-                            ylim = c(50, 59)) + 
-                theme_void() +
-                geom_point(data = last7days_df_summarize, 
-                           aes(x = as.numeric(long), y = as.numeric(lat), 
-                               size = newDeaths28DaysByPublishDate, 
-                               colour = selected,
-                               text = paste("City: ", areaName,
-                                            "<br>Total Deaths this week: ", newDeaths28DaysByPublishDate))) +
-                scale_color_manual(guide = "none",
-                                   values=c("#6bb9fc","black")) +
-                scale_size_continuous(name=selected_metric) +  #paste("Number of",selected_metric)) +
-                theme(legend.position='right')
-        }
-        else if (selected_metric=="Current Hospitalizations"){
-            map_p <-ggplot() +
-                geom_polygon(data = world_map, 
-                             aes(x = long, y = lat, group=group), 
-                             fill="lightgrey", colour = "white") + 
-                coord_fixed(ratio = 1.3, 
-                            xlim = c(-10,3), 
-                            ylim = c(50, 59)) + 
-                theme_void() +
-                geom_point(data = last7days_df_summarize, 
-                           aes(x = as.numeric(long), y = as.numeric(lat), 
-                               size = hospitalCases, 
-                               colour = selected,
-                               text = paste("City: ", areaName,
-                                            "<br>Hospitalizations this week: ", hospitalCases))) +
-                scale_color_manual(guide = "none",
-                                   values=c("#6bb9fc","black")) +
-                scale_size_continuous(name="Hospitalizations") +  #paste("Number of",selected_metric)) +
-                theme(legend.position='right')
-        }
-        else if (selected_metric=="Total Cases"){
-            map_p <-ggplot() +
-                geom_polygon(data = world_map, 
-                             aes(x = long, y = lat, group=group), 
-                             fill="lightgrey", colour = "white") + 
-                coord_fixed(ratio = 1.3, 
-                            xlim = c(-10,3), 
-                            ylim = c(50, 59)) + 
-                theme_void() +
-                geom_point(data = last7days_df_summarize, 
-                           aes(x = as.numeric(long), y = as.numeric(lat), 
-                               size = cumCasesByPublishDate, 
-                               colour = selected,
-                               text = paste("City: ", areaName,
-                                            "<br>Total Cases: ", cumCasesByPublishDate))) +
-                scale_color_manual(guide = "none",
-                                   values=c("#6bb9fc","black")) +
-                scale_size_continuous(name=selected_metric) +  #paste("Number of",selected_metric)) +
-                theme(legend.position='right')
-        }
-        else{
-            map_p <-ggplot() +
-                geom_polygon(data = world_map, 
-                             aes(x = long, y = lat, group=group), 
-                             fill="lightgrey", colour = "white") + 
-                coord_fixed(ratio = 1.3, 
-                            xlim = c(-10,3), 
-                            ylim = c(50, 59)) + 
-                theme_void() +
-                geom_point(data = last7days_df_summarize, 
-                           aes(x = as.numeric(long), y = as.numeric(lat), 
-                               size = cumDeaths28DaysByDeathDate, 
-                               colour = selected,
-                               text = paste("City: ", areaName,
-                                            "<br>Total Deaths: ", cumDeaths28DaysByDeathDate))) +
-                scale_color_manual(guide = "none",
-                                   values=c("#6bb9fc","black")) +
-                scale_size_continuous(name=selected_metric) +  #paste("Number of",selected_metric)) +
-                theme(legend.position='right')
-        }
+
+        map_p <- ggplot() +
+            geom_point(data = last7days_df_summarize, 
+                       aes(x = as.numeric(long), 
+                           y = as.numeric(lat), 
+                           size = selected_metric,
+                           colour = selected))+
+            scale_size_continuous(name=selected_metric_name) +
+            scale_color_manual(guide = "none",
+                               values=c("#6bb9fc","black"))
         
         legend <- cowplot::get_legend(map_p)
         return(ggdraw(legend))
-    }, height = 150)#, width = 200)
+    }, height = 150)
     
     
     # second plot on case update page
     output$case_line_plot <- renderPlotly({
         selected_city <- input$city
-        selected_metric <- input$metric
         start_date <- input$date_range[1]
         end_date <- input$date_range[2]
         
@@ -415,36 +253,24 @@ server <- function(input, output) {
                    date >= start_date,
                    date <= end_date) 
         
-        if (selected_metric=="New Cases"){
-            line_p <- ggplot()+
-                geom_line(data=filter_data, aes(x=date,y=newCasesByPublishDate), colour="#6bb9fc")+
-                labs(x = "Date",y = "New Daily Cases")+
-                theme_grey()
-        }
-        else if (selected_metric=="New Deaths"){
-            line_p <- ggplot()+
-                geom_line(data=filter_data, aes(x=date,y=newDeaths28DaysByPublishDate), colour="#6bb9fc")+
-                labs(x = "Date",y = "New Daily Deaths")+
-                theme_grey()
-        }
-        else if (selected_metric=="Current Hospitalizations"){
-            line_p <- ggplot()+
-                geom_line(data=filter_data, aes(x=date,y=hospitalCases), colour="#6bb9fc")+
-                labs(x = "Date",y = selected_metric)+
-                theme_grey()
-        }   
-        else if (selected_metric=="Total Cases"){
-            line_p <- ggplot()+
-                geom_line(data=filter_data, aes(x=date,y=cumCasesByPublishDate), colour="#6bb9fc")+
-                labs(x = "Date",y = selected_metric)+
-                theme_grey()
-        }
-        else {
-            line_p <- ggplot()+
-                geom_line(data=filter_data, aes(x=date,y=cumDeaths28DaysByDeathDate), colour="#6bb9fc")+
-                labs(x = "Date",y = selected_metric)+
-                theme_grey()
-        }
+        h <- hash() 
+        h[["New Cases"]] <- filter_data$newCasesByPublishDate
+        h[["New Deaths"]] <- filter_data$newDeaths28DaysByPublishDate
+        h[["Current Hospitalizations"]] <- filter_data$hospitalCases
+        h[["Total Cases"]] <- filter_data$cumCasesByPublishDate
+        h[["Total Deaths"]] <- filter_data$cumDeaths28DaysByDeathDate
+        
+        selected_metric_name <- input$metric
+        selected_metric <- h[[selected_metric_name]]
+        
+        
+        line_p <- ggplot()+
+            geom_line(data=filter_data, aes(x=date,y=selected_metric), colour="#6bb9fc") + 
+            labs(x = "Date",y = selected_metric_name)+
+            theme_grey() +
+            ggtitle(paste(selected_metric_name, "in", selected_city)) +
+            theme(title = element_text(colour = "#55595c",
+                                       size = 10))
         
         line_plotly_plot <- ggplotly(line_p, tooltip="text") %>% 
             config(displayModeBar = F)
@@ -569,17 +395,19 @@ server <- function(input, output) {
                 "3rd Dose", 1, 12,
             )
             eg$x1 = colors
-            
+          
+                  
             # Color, discrete
             plot <- ggplot(eg, aes(x = x, y = y, color = x1)) +
                 ggtitle(paste("Current Vaccination Rates in", city)) +
                 geom_point(size=60)+
                 guides(color = FALSE) +
-                theme(axis.text = element_blank(),
+                theme(title = element_text(colour = "#55595c",
+                                           size = 10),
+                      axis.text = element_blank(),
                       axis.title.x = element_blank(),
                       axis.title.y = element_blank(),
                       axis.ticks = element_blank(),
-                      #plot.title = element_text(face="bold"),
                       panel.background = element_rect(fill = "transparent",colour = NA)) +
                 annotate("text", x = 1, y=1, label=first_dose, colour='white', size=5) +
                 annotate("text", x = 2, y=1, label=second_dose, colour='white', size=5) +
@@ -605,20 +433,20 @@ server <- function(input, output) {
                 ggtitle(paste("Time Series Plot for Vaccination Rates in", city)) +
                 ylab("Proportion of Population (%)") +
                 xlab("Date") +
-                geom_line(aes(color = variable))+ #size = 1) +
-                #scale_color_manual(values = c(1,2,3,4)) +
+                geom_line(aes(color = variable))+ 
                 theme_grey()+
-                theme(axis.title.x = element_text(),
-                      axis.title.y = element_text(),
+                theme(title = element_text(colour = "#55595c",
+                                           size = 10),
+                      axis.title.x = element_text(colour = "#55595c"),
+                      axis.title.y = element_text(colour = "#55595c"),
                       axis.ticks = element_line()) +
                 scale_color_manual(guide = "none",
                                    values=c("#8cc5fd","#0379b7", "#001544"))
                 
-                #theme(plot.title = element_text(face="bold"))
             return (p)
         }
     })
-
+    
 }
 
 # Run the application 
