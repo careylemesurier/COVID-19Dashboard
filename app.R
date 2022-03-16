@@ -59,7 +59,7 @@ ui <- fluidPage(
                                        label = "Select city: ", 
                                        selected = "Belfast",
                                        choices = city_locations$areaName)),
-                    column(4,#align="right",
+                    column(4,
                            dateRangeInput(inputId = 'date_range',
                                           label = "Select date range: ",
                                           start = earliest_date,
@@ -235,7 +235,9 @@ server <- function(input, output) {
                            colour = selected))+
             scale_size_continuous(name=selected_metric_name) +
             scale_color_manual(guide = "none",
-                               values=c("#6bb9fc","black"))
+                               values=c("#6bb9fc","black"))+ 
+            theme(panel.background = element_rect(fill = "transparent",colour = NA))+
+            theme_void() 
         
         legend <- cowplot::get_legend(map_p)
         return(ggdraw(legend))
@@ -298,7 +300,7 @@ server <- function(input, output) {
         cities = c('Belfast','Birmingham', 'Bristol, City of','Cambridgeshire','Cardiff','City of Edinburgh','Glasgow City')
         i <- 1
         for (city in cities){
-            # Shorten the city name for the tilte for Bristol and Edinburgh
+            # Shorten the city name for the title for Bristol and Edinburgh
             if (city=='Bristol, City of'){
                 city_title<-'Bristol'
             }
